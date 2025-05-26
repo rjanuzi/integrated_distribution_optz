@@ -164,20 +164,51 @@ def gen_routes(
     """
     routes = []
     for _, plant in plants.iterrows():
+        # Adiciona rota entre todos os warehouses e plantas
+        for _, dist_center in dist_centers.iterrows():
+            # Para o Warehouse
+            routes.append(
+                {
+                    "origin": plant["name"],
+                    "destination": dist_center["name"],
+                    "distance": round(
+                        lat_lon_dist(
+                            origin=(plant["lat"], plant["lon"]),
+                            destination=(dist_center["lat"], dist_center["lon"]),
+                        ),
+                        3,
+                    ),
+                }
+            )
+
+            # Do o Warehouse
+            routes.append(
+                {
+                    "origin": dist_center["name"],
+                    "destination": plant["name"],
+                    "distance": round(
+                        lat_lon_dist(
+                            origin=(dist_center["lat"], dist_center["lon"]),
+                            destination=(plant["lat"], plant["lon"]),
+                        ),
+                        3,
+                    ),
+                }
+            )
+
         # Adiciona rota para todas as outras plantas (transferências)
         for _, plant_2 in plants[plants["name"] != plant["name"]].iterrows():
-            tmp_distance = round(
-                lat_lon_dist(
-                    origin=(plant["lat"], plant["lon"]),
-                    destination=(plant_2["lat"], plant_2["lon"]),
-                ),
-                3,
-            )
             routes.append(
                 {
                     "origin": plant["name"],
                     "destination": plant_2["name"],
-                    "distance": tmp_distance,
+                    "distance": round(
+                        lat_lon_dist(
+                            origin=(plant["lat"], plant["lon"]),
+                            destination=(plant_2["lat"], plant_2["lon"]),
+                        ),
+                        3,
+                    ),
                 }
             )
 
@@ -185,18 +216,17 @@ def gen_routes(
             # "Checa a sorte" para saber se haverá rota entre a planta e o cliente
             if random.uniform(0, 1) <= __DEFAULT_ROUTES_RATE:
                 # Adicionar rota para planta e cliente
-                tmp_distance = round(
-                    lat_lon_dist(
-                        origin=(plant["lat"], plant["lon"]),
-                        destination=(customer["lat"], customer["lon"]),
-                    ),
-                    3,
-                )
                 routes.append(
                     {
                         "origin": plant["name"],
                         "destination": customer["name"],
-                        "distance": tmp_distance,
+                        "distance": round(
+                            lat_lon_dist(
+                                origin=(plant["lat"], plant["lon"]),
+                                destination=(customer["lat"], customer["lon"]),
+                            ),
+                            3,
+                        ),
                     }
                 )
 
@@ -204,18 +234,17 @@ def gen_routes(
                 for _, dist_center in dist_centers[
                     dist_centers["plant"] == plant["name"]
                 ].iterrows():
-                    tmp_distance = round(
-                        lat_lon_dist(
-                            origin=(dist_center["lat"], dist_center["lon"]),
-                            destination=(customer["lat"], customer["lon"]),
-                        ),
-                        3,
-                    )
                     routes.append(
                         {
                             "origin": dist_center["name"],
                             "destination": customer["name"],
-                            "distance": tmp_distance,
+                            "distance": round(
+                                lat_lon_dist(
+                                    origin=(dist_center["lat"], dist_center["lon"]),
+                                    destination=(customer["lat"], customer["lon"]),
+                                ),
+                                3,
+                            ),
                         }
                     )
 

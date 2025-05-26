@@ -31,7 +31,8 @@ __DEFAULT_SIZES = [
 ]
 __DEFAULT_PRODUCTS_PER_SIZE = 5
 
-__DEFAULT_FREIGHT_PER_KM = 7.1  # Reais por Km médio
+__DEFAULT_FREIGHT_PER_KM = 7.1  # Reais / Km Average
+__DEFAULT_DAILY_DISTANCE_KM = 400  # Average daily traveled distance
 
 
 def lat_lon_dist(
@@ -177,11 +178,6 @@ def gen_routes(
                     "origin": plant["name"],
                     "destination": plant_2["name"],
                     "distance": tmp_distance,
-                    "freight_cost": round(
-                        tmp_distance
-                        * (__DEFAULT_FREIGHT_PER_KM + random.uniform(-1, 1)),
-                        3,
-                    ),
                 }
             )
 
@@ -201,11 +197,6 @@ def gen_routes(
                         "origin": plant["name"],
                         "destination": customer["name"],
                         "distance": tmp_distance,
-                        "freight_cost": round(
-                            tmp_distance
-                            * (__DEFAULT_FREIGHT_PER_KM + random.uniform(-1, 1)),
-                            3,
-                        ),
                     }
                 )
 
@@ -225,15 +216,18 @@ def gen_routes(
                             "origin": dist_center["name"],
                             "destination": customer["name"],
                             "distance": tmp_distance,
-                            "freight_cost": round(
-                                tmp_distance
-                                * (__DEFAULT_FREIGHT_PER_KM + random.uniform(-1, 1)),
-                                3,
-                            ),
                         }
                     )
 
-    return pd.DataFrame(data=routes)
+    routes = pd.DataFrame(data=routes)
+    routes["leadtime"] = (
+        (routes["distance"] / __DEFAULT_DAILY_DISTANCE_KM).round(0).astype(int)
+    )
+    routes["freight_cost"] = (
+        routes["distance"] * (__DEFAULT_FREIGHT_PER_KM + random.uniform(-1, 1))
+    ).round(3)
+
+    return routes
 
 
 def gen_demand(
